@@ -2,13 +2,6 @@
 - name: Configure application host
   hosts: app
   become: true
-  vars:
-    app_repo_url: "{{ app_repo_url | default('https://github.com/fresh/devops-stage6.git') }}"
-    app_repo_version: "{{ app_repo_version | default('main') }}"
-    base_domain: "{{ base_domain | default('your-domain.com') }}"
-    api_base_path: "{{ api_base_path | default('/api') }}"
-    traefik_acme_email: "{{ traefik_acme_email | default('admin@your-domain.com') }}"
-    zipkin_subdomain: "{{ zipkin_subdomain | default('zipkin') }}"
   roles:
     - dependencies
     - deploy

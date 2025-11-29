@@ -34,6 +34,9 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
+          TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
+          TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
         run: terraform init -input=false
 
       - name: Terraform plan
@@ -43,6 +46,9 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
+          TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
+          TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
         run: |
           set +e
           terraform plan -detailed-exitcode -out=tfplan
@@ -106,6 +112,9 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
+          TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
+          TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
         run: terraform init -input=false
 
       - name: Terraform apply
@@ -114,4 +123,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
+          TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
+          TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
         run: terraform apply -input=false tfplan
