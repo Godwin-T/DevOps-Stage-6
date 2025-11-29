@@ -1,0 +1,4 @@
+PORT=8080
+AUTH_API_ADDRESS=https://{{ base_domain }}{{ auth_api_prefix }}
+TODOS_API_ADDRESS=https://{{ base_domain }}{{ todos_api_prefix | default(api_base_path ~ '/todos') }}
+ZIPKIN_URL=https://{{ base_domain }}{{ zipkin_api_prefix | default(api_base_path ~ '/zipkin') }}

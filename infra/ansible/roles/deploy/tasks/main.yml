@@ -1,0 +1,51 @@
+---
+- name: Ensure application directory exists
+  ansible.builtin.file:
+    path: "{{ app_path }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0755"
+
+- name: Checkout application repository
+  ansible.builtin.git:
+    repo: "{{ app_repo_url }}"
+    dest: "{{ app_path }}"
+    version: "{{ app_repo_version }}"
+    update: true
+    accept_hostkey: true
+  register: repo_checkout
+  notify: deploy stack
+
+- name: Template root environment file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ app_path }}/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0644"
+  notify: deploy stack
+
+- name: Template frontend environment file
+  ansible.builtin.template:
+    src: frontend-env.j2
+    dest: "{{ app_path }}/frontend/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0644"
+  notify: deploy stack
+
+- name: Ensure Traefik ACME storage is present
+  ansible.builtin.file:
+    path: "{{ app_path }}/traefik/acme.json"
+    state: touch
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0600"
+
+- name: Ensure application tree ownership
+  ansible.builtin.file:
+    path: "{{ app_path }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    recurse: true
