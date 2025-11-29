@@ -81,6 +81,9 @@ Infrastructure lives in `infra/` and provisions a single AWS EC2 host plus all d
   export TF_VAR_ssh_private_key_path="$HOME/.ssh/id_rsa"
   export TF_VAR_base_domain="your-domain.com"
   export TF_VAR_traefik_acme_email="admin@your-domain.com"
+  export TF_VAR_auth_jwt_secret="replace-me"
+  export TF_VAR_todos_jwt_secret="replace-me"
+  export TF_VAR_users_jwt_secret="replace-me"
   ```
 - Typical workflow:
   ```bash
