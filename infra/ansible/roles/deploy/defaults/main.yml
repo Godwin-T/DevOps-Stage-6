@@ -1,5 +1,5 @@
 ---
-app_repo_url: "https://github.com/fresh/devops-stage6.git"
+app_repo_url: "https://github.com/Godwin-T/DevOps-Stage-6.git"
 app_repo_version: "main"
 app_path: "/opt/devops-stage6"
 app_user: "ubuntu"

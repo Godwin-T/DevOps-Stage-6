@@ -2,7 +2,6 @@
 - name: deploy stack
   ansible.builtin.shell: |
     set -e
-    docker compose pull
     docker compose up -d 
   args:
     chdir: "{{ app_path }}"

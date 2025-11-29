@@ -13,6 +13,7 @@
     dest: "{{ app_path }}"
     version: "{{ app_repo_version }}"
     update: true
+    force: true
     accept_hostkey: true
   register: repo_checkout
   notify: deploy stack
@@ -30,6 +31,42 @@
   ansible.builtin.template:
     src: frontend-env.j2
     dest: "{{ app_path }}/frontend/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0644"
+  notify: deploy stack
+
+- name: Render auth-api env
+  ansible.builtin.template:
+    src: auth-api-env.j2
+    dest: "{{ app_path }}/auth-api/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0644"
+  notify: deploy stack
+
+- name: Render todos-api env
+  ansible.builtin.template:
+    src: todos-api-env.j2
+    dest: "{{ app_path }}/todos-api/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0644"
+  notify: deploy stack
+
+- name: Render users-api env
+  ansible.builtin.template:
+    src: users-api-env.j2
+    dest: "{{ app_path }}/users-api/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0644"
+  notify: deploy stack
+
+- name: Render log-message-processor env
+  ansible.builtin.template:
+    src: log-message-processor-env.j2
+    dest: "{{ app_path }}/log-message-processor/.env"
     owner: "{{ app_user }}"
     group: "{{ app_user }}"
     mode: "0644"
