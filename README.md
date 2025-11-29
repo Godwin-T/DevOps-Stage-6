@@ -62,6 +62,7 @@ Logs can be tailed with `docker compose logs -f <service>` and the stack can be 
 ### Environment tweaks
 
 - Ports, secrets, Redis channel names, etc. can be edited inside the respective `.env` files per service.
+- Each directory now ships with an `.env.example`; copy it to `.env` (e.g. `cp auth-api/.env.example auth-api/.env`) and tweak values for your environment.
 - The login credentials remain the same (`admin/Admin123`, `hng/HngTech`, `user/Password`).
 - Update `frontend/.env` if you change the public hostnames so the browser calls the right URLs.
 - After editing `.env` (root or per-service), rebuild the affected images: e.g. `docker compose up -d --build frontend`.
