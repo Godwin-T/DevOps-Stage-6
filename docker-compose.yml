@@ -1,0 +1,154 @@
+version: "3.8"
+
+services:
+  traefik:
+    image: traefik:latest
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+      - --certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/etc/traefik/acme.json
+      - --certificatesresolvers.le.acme.tlschallenge=true
+    environment:
+      - DOCKER_API_VERSION=1.44
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./traefik/certs:/etc/traefik/certs:ro
+      - ./traefik/acme.json:/etc/traefik/acme.json
+    networks:
+      - edge
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - internal
+    restart: unless-stopped
+
+  zipkin:
+    image: openzipkin/zipkin:3.4
+    environment:
+      - STORAGE_TYPE=mem
+    networks:
+      - internal
+      - edge
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zipkin.rule=Host(`${ZIPKIN_SUBDOMAIN}.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.zipkin.entrypoints=websecure"
+      - "traefik.http.routers.zipkin.tls=true"
+      - "traefik.http.routers.zipkin.tls.certresolver=le"
+      - "traefik.http.services.zipkin.loadbalancer.server.port=9411"
+      - "traefik.http.routers.zipkin-collector.rule=Host(`${BASE_DOMAIN}`) && PathPrefix(`${ZIPKIN_API_PREFIX}`)"
+      - "traefik.http.routers.zipkin-collector.entrypoints=websecure"
+      - "traefik.http.routers.zipkin-collector.tls=true"
+      - "traefik.http.routers.zipkin-collector.tls.certresolver=le"
+      - "traefik.http.routers.zipkin-collector.middlewares=zipkin-strip"
+      - "traefik.http.services.zipkin-collector.loadbalancer.server.port=9411"
+      - "traefik.http.middlewares.zipkin-strip.replacepathregex.regex=^${ZIPKIN_API_PREFIX}(.*)"
+      - "traefik.http.middlewares.zipkin-strip.replacepathregex.replacement=/api/v2/spans$$1"
+
+  users-api:
+    build:
+      context: ./users-api
+    env_file:
+      - ./users-api/.env
+    networks:
+      - internal
+      - edge
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.users.rule=Host(`${BASE_DOMAIN}`) && PathPrefix(`${USERS_API_PREFIX}`)"
+      - "traefik.http.routers.users.entrypoints=websecure"
+      - "traefik.http.routers.users.tls=true"
+      - "traefik.http.routers.users.tls.certresolver=le"
+      - "traefik.http.routers.users.middlewares=users-strip-api"
+      - "traefik.http.middlewares.users-strip-api.stripprefix.prefixes=${API_BASE_PATH}"
+      - "traefik.http.services.users.loadbalancer.server.port=8083"
+
+  auth-api:
+    build:
+      context: ./auth-api
+    env_file:
+      - ./auth-api/.env
+    networks:
+      - internal
+      - edge
+    depends_on:
+      - users-api
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`${BASE_DOMAIN}`) && PathPrefix(`${AUTH_API_PREFIX}`)"
+      - "traefik.http.routers.auth.entrypoints=websecure"
+      - "traefik.http.routers.auth.tls=true"
+      - "traefik.http.routers.auth.tls.certresolver=le"
+      - "traefik.http.routers.auth.middlewares=auth-strip-api,auth-strip-service"
+      - "traefik.http.middlewares.auth-strip-api.stripprefix.prefixes=${API_BASE_PATH}"
+      - "traefik.http.middlewares.auth-strip-service.stripprefix.prefixes=${AUTH_SERVICE_BASE}"
+      - "traefik.http.services.auth.loadbalancer.server.port=8081"
+
+  todos-api:
+    build:
+      context: ./todos-api
+    env_file:
+      - ./todos-api/.env
+    networks:
+      - internal
+      - edge
+    depends_on:
+      - redis
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.todos.rule=Host(`${BASE_DOMAIN}`) && PathPrefix(`${TODOS_API_PREFIX}`)"
+      - "traefik.http.routers.todos.entrypoints=websecure"
+      - "traefik.http.routers.todos.tls=true"
+      - "traefik.http.routers.todos.tls.certresolver=le"
+      - "traefik.http.routers.todos.middlewares=todos-strip-api"
+      - "traefik.http.middlewares.todos-strip-api.stripprefix.prefixes=${API_BASE_PATH}"
+      - "traefik.http.services.todos.loadbalancer.server.port=8082"
+
+  log-message-processor:
+    build:
+      context: ./log-message-processor
+    env_file:
+      - ./log-message-processor/.env
+    networks:
+      - internal
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    networks:
+      - edge
+    depends_on:
+      - auth-api
+      - todos-api
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${BASE_DOMAIN}`) && !PathPrefix(`${API_BASE_PATH}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=le"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
+volumes:
+  redis-data:
+
+networks:
+  edge:
+  internal:
