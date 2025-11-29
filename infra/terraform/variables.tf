@@ -29,7 +29,7 @@ variable "allow_ssh_cidr" {
 variable "app_repo_url" {
   description = "Git repository URL of the application."
   type        = string
-  default     = "https://github.com/fresh/devops-stage6.git"
+  default     = "https://github.com/Godwin-T/DevOps-Stage-6.git"
 }
 
 variable "app_repo_version" {
@@ -70,4 +70,52 @@ variable "tags" {
   description = "Map of additional tags to apply to AWS resources."
   type        = map(string)
   default     = {}
+}
+
+variable "auth_jwt_secret" {
+  description = "JWT secret for the auth API."
+  type        = string
+  sensitive   = true
+}
+
+variable "todos_jwt_secret" {
+  description = "JWT secret for todos API."
+  type        = string
+  sensitive   = true
+}
+
+variable "users_jwt_secret" {
+  description = "JWT secret for users API."
+  type        = string
+  sensitive   = true
+}
+
+variable "redis_host" {
+  description = "Redis host name or address."
+  type        = string
+  default     = "redis"
+}
+
+variable "redis_port" {
+  description = "Redis port."
+  type        = number
+  default     = 6379
+}
+
+variable "redis_channel" {
+  description = "Redis pub/sub channel."
+  type        = string
+  default     = "todo_events"
+}
+
+variable "zipkin_url" {
+  description = "Zipkin collector URL."
+  type        = string
+  default     = "http://zipkin:9411/api/v2/spans"
+}
+
+variable "root_volume_size" {
+  description = "Root EBS volume size (GB)."
+  type        = number
+  default     = 30
 }

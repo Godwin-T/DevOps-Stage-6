@@ -83,6 +83,11 @@ resource "aws_instance" "app" {
   vpc_security_group_ids      = [aws_security_group.app.id]
   key_name                    = aws_key_pair.app.key_name
   associate_public_ip_address = true
+  root_block_device {
+    volume_size = var.root_volume_size
+    volume_type = "gp3"
+    delete_on_termination = true
+  }
 
   tags = merge(local.common_tags, {
     Name = "devops-stage6-app"
@@ -104,13 +109,32 @@ resource "local_file" "ansible_inventory" {
   filename = "${path.module}/../ansible/inventory/hosts.ini"
 }
 
+resource "local_file" "ansible_extra_vars" {
+  content  = jsonencode({
+    app_repo_url      = var.app_repo_url
+    app_repo_version  = var.app_repo_version
+    base_domain       = var.base_domain
+    api_base_path     = var.api_base_path
+    traefik_acme_email= var.traefik_acme_email
+    zipkin_subdomain  = var.zipkin_subdomain
+    auth_jwt_secret   = var.auth_jwt_secret
+    todos_jwt_secret  = var.todos_jwt_secret
+    users_jwt_secret  = var.users_jwt_secret
+    redis_host        = var.redis_host
+    redis_port        = var.redis_port
+    redis_channel     = var.redis_channel
+    zipkin_url        = var.zipkin_url
+  })
+  filename = "${path.module}/../ansible/inventory/extra-vars.json"
+}
+
 resource "null_resource" "ansible_deploy" {
   triggers = {
     instance_id  = aws_instance.app.id
     repo_version = var.app_repo_version
   }
 
-  depends_on = [local_file.ansible_inventory]
+  depends_on = [local_file.ansible_inventory, local_file.ansible_extra_vars]
 
   provisioner "local-exec" {
     working_dir = path.module
@@ -121,7 +145,7 @@ resource "null_resource" "ansible_deploy" {
 ansible-playbook \
   -i ../ansible/inventory/hosts.ini \
   ../ansible/site.yml \
-  --extra-vars "app_repo_url=${var.app_repo_url} app_repo_version=${var.app_repo_version} base_domain=${var.base_domain} api_base_path=${var.api_base_path} traefik_acme_email=${var.traefik_acme_email} zipkin_subdomain=${var.zipkin_subdomain}"
+  --extra-vars @../ansible/inventory/extra-vars.json
 EOT
   }
 }
