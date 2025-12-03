@@ -84,8 +84,8 @@ resource "aws_instance" "app" {
   key_name                    = aws_key_pair.app.key_name
   associate_public_ip_address = true
   root_block_device {
-    volume_size = var.root_volume_size
-    volume_type = "gp3"
+    volume_size           = var.root_volume_size
+    volume_type           = "gp3"
     delete_on_termination = true
   }
 
@@ -102,28 +102,28 @@ resource "aws_eip" "app" {
 
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/inventory.tpl", {
-    public_ip             = aws_eip.app.public_ip
-    ansible_user          = var.ansible_user
-    ssh_private_key_path  = var.ssh_private_key_path
+    public_ip            = aws_eip.app.public_ip
+    ansible_user         = var.ansible_user
+    ssh_private_key_path = var.ssh_private_key_path
   })
   filename = "${path.module}/../ansible/inventory/hosts.ini"
 }
 
 resource "local_file" "ansible_extra_vars" {
-  content  = jsonencode({
-    app_repo_url      = var.app_repo_url
-    app_repo_version  = var.app_repo_version
-    base_domain       = var.base_domain
-    api_base_path     = var.api_base_path
-    traefik_acme_email= var.traefik_acme_email
-    zipkin_subdomain  = var.zipkin_subdomain
-    auth_jwt_secret   = var.auth_jwt_secret
-    todos_jwt_secret  = var.todos_jwt_secret
-    users_jwt_secret  = var.users_jwt_secret
-    redis_host        = var.redis_host
-    redis_port        = var.redis_port
-    redis_channel     = var.redis_channel
-    zipkin_url        = var.zipkin_url
+  content = jsonencode({
+    app_repo_url       = var.app_repo_url
+    app_repo_version   = var.app_repo_version
+    base_domain        = var.base_domain
+    api_base_path      = var.api_base_path
+    traefik_acme_email = var.traefik_acme_email
+    zipkin_subdomain   = var.zipkin_subdomain
+    auth_jwt_secret    = var.auth_jwt_secret
+    todos_jwt_secret   = var.todos_jwt_secret
+    users_jwt_secret   = var.users_jwt_secret
+    redis_host         = var.redis_host
+    redis_port         = var.redis_port
+    redis_channel      = var.redis_channel
+    zipkin_url         = var.zipkin_url
   })
   filename = "${path.module}/../ansible/inventory/extra-vars.json"
 }
