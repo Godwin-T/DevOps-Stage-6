@@ -15,10 +15,23 @@ env:
 jobs:
   plan:
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_base_domain: ${{ secrets.BASE_DOMAIN }}
+      TF_VAR_traefik_acme_email: ${{ secrets.TRAEFIK_ACME_EMAIL }}
+      TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+      TF_VAR_ssh_private_key_path: ${{ runner.temp }}/id_rsa
+      TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
+      TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
+      TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
     outputs:
       exitcode: ${{ steps.plan.outputs.exitcode }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Prepare SSH private key
+        run: |
+          install -m 600 /dev/null "${RUNNER_TEMP}/id_rsa"
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > "${RUNNER_TEMP}/id_rsa"
 
       - uses: hashicorp/setup-terraform@v3
         with:
@@ -34,9 +47,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
-          TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
-          TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
         run: terraform init -input=false
 
       - name: Terraform plan
@@ -46,9 +56,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
-          TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
-          TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
         run: |
           set +e
           terraform plan -detailed-exitcode -out=tfplan
@@ -91,10 +98,23 @@ jobs:
     needs: plan
     if: needs.plan.outputs.exitcode == '2'
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_base_domain: ${{ secrets.BASE_DOMAIN }}
+      TF_VAR_traefik_acme_email: ${{ secrets.TRAEFIK_ACME_EMAIL }}
+      TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+      TF_VAR_ssh_private_key_path: ${{ runner.temp }}/id_rsa
+      TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
+      TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
+      TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
     environment:
       name: production
     steps:
       - uses: actions/checkout@v4
+
+      - name: Prepare SSH private key
+        run: |
+          install -m 600 /dev/null "${RUNNER_TEMP}/id_rsa"
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > "${RUNNER_TEMP}/id_rsa"
 
       - uses: hashicorp/setup-terraform@v3
         with:
@@ -112,9 +132,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
-          TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
-          TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
         run: terraform init -input=false
 
       - name: Terraform apply
@@ -123,7 +140,4 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
-          TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
-          TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
         run: terraform apply -input=false tfplan
