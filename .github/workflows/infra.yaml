@@ -19,7 +19,6 @@ jobs:
       TF_VAR_base_domain: ${{ secrets.BASE_DOMAIN }}
       TF_VAR_traefik_acme_email: ${{ secrets.TRAEFIK_ACME_EMAIL }}
       TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
-      TF_VAR_ssh_private_key_path: ${{ runner.temp }}/id_rsa
       TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
       TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
       TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
@@ -32,6 +31,7 @@ jobs:
         run: |
           install -m 600 /dev/null "${RUNNER_TEMP}/id_rsa"
           printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > "${RUNNER_TEMP}/id_rsa"
+          echo "TF_VAR_ssh_private_key_path=${RUNNER_TEMP}/id_rsa" >> "$GITHUB_ENV"
 
       - uses: hashicorp/setup-terraform@v3
         with:
@@ -102,7 +102,6 @@ jobs:
       TF_VAR_base_domain: ${{ secrets.BASE_DOMAIN }}
       TF_VAR_traefik_acme_email: ${{ secrets.TRAEFIK_ACME_EMAIL }}
       TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
-      TF_VAR_ssh_private_key_path: ${{ runner.temp }}/id_rsa
       TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
       TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
       TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
@@ -115,6 +114,7 @@ jobs:
         run: |
           install -m 600 /dev/null "${RUNNER_TEMP}/id_rsa"
           printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > "${RUNNER_TEMP}/id_rsa"
+          echo "TF_VAR_ssh_private_key_path=${RUNNER_TEMP}/id_rsa" >> "$GITHUB_ENV"
 
       - uses: hashicorp/setup-terraform@v3
         with:
