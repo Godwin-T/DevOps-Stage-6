@@ -57,14 +57,14 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
-            terraform plan -detailed-exitcode -out=tfplan
-            PLAN_EXIT_CODE=$? 
-            echo "Terraform plan exit code: $PLAN_EXIT_CODE"            
-            if [ $PLAN_EXIT_CODE -eq 1 ]; then
-              echo "Terraform plan failed"
-              exit 1
-            fi            
-            echo "exitcode=$PLAN_EXIT_CODE" >> "$GITHUB_OUTPUT"
+          terraform plan -detailed-exitcode -out=tfplan
+          PLAN_EXIT_CODE=$? 
+          echo "Terraform plan exit code: $PLAN_EXIT_CODE"            
+          if [ $PLAN_EXIT_CODE -eq 1 ]; then
+            echo "Terraform plan failed"
+            exit 1
+          fi            
+          echo "exitcode=$PLAN_EXIT_CODE" >> "$GITHUB_OUTPUT"
 
       - name: Capture plan text
         if: ${{ steps.plan.outputs.exitcode == 2 }}
