@@ -61,10 +61,11 @@ jobs:
           terraform plan -detailed-exitcode -out=tfplan
           code=$?
           if [ $code -eq 1 ]; then exit 1; fi
+          echo $code
           echo "exitcode=$code" >> "$GITHUB_OUTPUT"
 
       - name: Capture plan text
-        if: ${{ steps.plan.outputs.exitcode == '2' }}
+        if: ${{ steps.plan.outputs.exitcode == 2 }}
         id: show
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
