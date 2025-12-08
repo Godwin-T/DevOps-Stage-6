@@ -113,11 +113,19 @@ jobs:
           server_port: ${{ secrets.SMTP_PORT }}
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
-          subject: "[Terraform] Drift detected for devops-stage6"
+          subject: "[Terraform] Drift detected for TODO App Infrastructure"
           to: ${{ secrets.DRIFT_EMAIL_TO }}
           from: Terraform Bot
           content_type: text/plain
-          body: ${{ steps.show.outputs.body }}
+          body: |
+            Drift has been detected in the Terraform plan for devops-stage6.
+      
+            Plan details:
+            ${{ steps.show.outputs.body }}
+      
+            View the workflow run here:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
 
       - name: Upload plan artifact
         if: steps.plan.outputs.drift_detected == 'true'
