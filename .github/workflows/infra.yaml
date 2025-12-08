@@ -67,6 +67,7 @@ jobs:
       #     echo "exitcode=$PLAN_EXIT_CODE" >> "$GITHUB_OUTPUT"
       - name: Terraform Plan
         continue-on-error: true
+        working-directory: ${{ env.TF_WORKING_DIR }}
         id: plan
         run: |
           plan_output=$(terraform plan -no-color -out=tfplan 2>&1)
