@@ -23,7 +23,7 @@ jobs:
       TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
       TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
     outputs:
-      exitcode: ${{ steps.plan.outputs.exitcode }}
+      exitcode: ${{ steps.plan.outputs.drift_detected }}
     steps:
       - uses: actions/checkout@v4
 
@@ -66,7 +66,6 @@ jobs:
       #     fi            
       #     echo "exitcode=$PLAN_EXIT_CODE" >> "$GITHUB_OUTPUT"
       - name: Terraform Plan
-        # continue-on-error: true
         id: plan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
