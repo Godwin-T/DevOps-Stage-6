@@ -64,7 +64,7 @@ jobs:
           echo "exitcode=$code" >> "$GITHUB_OUTPUT"
 
       - name: Capture plan text
-        if: steps.plan.outputs.exitcode == '2'
+        if: ${{ steps.plan.outputs.exitcode == '2' }}
         id: show
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
