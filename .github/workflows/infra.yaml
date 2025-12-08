@@ -58,8 +58,7 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
             terraform plan -detailed-exitcode -out=tfplan
-            PLAN_EXIT_CODE=$?
-            set -e            
+            PLAN_EXIT_CODE=$? 
             echo "Terraform plan exit code: $PLAN_EXIT_CODE"            
             if [ $PLAN_EXIT_CODE -eq 1 ]; then
               echo "Terraform plan failed"
