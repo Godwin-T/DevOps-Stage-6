@@ -123,7 +123,7 @@ jobs:
 
   apply:
     needs: plan
-    if: steps.plan.outputs.drift_detected == 'true'
+    if: needs.plan.outputs.drift_detected == 'true'
     runs-on: ubuntu-latest
     env:
       TF_VAR_base_domain: ${{ secrets.BASE_DOMAIN }}
