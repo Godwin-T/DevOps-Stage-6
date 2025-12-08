@@ -23,7 +23,7 @@ jobs:
       TF_VAR_todos_jwt_secret: ${{ secrets.TODOS_JWT_SECRET }}
       TF_VAR_users_jwt_secret: ${{ secrets.USERS_JWT_SECRET }}
     outputs:
-      exitcode: ${{ steps.plan.outputs.drift_detected }}
+      drift_detected: ${{ steps.plan.outputs.drift_detected }}
     steps:
       - uses: actions/checkout@v4
 
