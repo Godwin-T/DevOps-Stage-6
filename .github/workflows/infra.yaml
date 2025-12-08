@@ -49,25 +49,49 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: terraform init -input=false
 
-      - name: Terraform plan
+      # - name: Terraform plan
+      #   id: plan
+      #   working-directory: ${{ env.TF_WORKING_DIR }}
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      #   run: |
+      #     terraform plan -detailed-exitcode -out=tfplan
+      #     PLAN_EXIT_CODE=$? 
+      #     echo "Terraform plan exit code: $PLAN_EXIT_CODE"            
+      #     if [ $PLAN_EXIT_CODE -eq 1 ]; then
+      #       echo "Terraform plan failed"
+      #       exit 1
+      #     fi            
+      #     echo "exitcode=$PLAN_EXIT_CODE" >> "$GITHUB_OUTPUT"
+      - name: Terraform Plan
+        continue-on-error: true
         id: plan
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
-          terraform plan -detailed-exitcode -out=tfplan -lock=false
-          PLAN_EXIT_CODE=$? 
-          echo "Terraform plan exit code: $PLAN_EXIT_CODE"            
-          if [ $PLAN_EXIT_CODE -eq 1 ]; then
-            echo "Terraform plan failed"
+          plan_output=$(terraform plan -no-color -out=tfplan 2>&1)
+          echo "${plan_output}"
+          
+          echo "drift_detected=false" >> $GITHUB_OUTPUT
+          
+          echo "plan_text<<EOF" >> $GITHUB_OUTPUT
+          echo "${plan_output}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          if echo "${plan_output}" | grep -q 'Plan:'; then
+            if ! echo "${plan_output}" | grep -q 'No changes.'; then
+              echo "Drift detected. Setting drift_detected=true"
+              echo "drift_detected=true" >> $GITHUB_OUTPUT
+            fi
+          fi
+          
+          if ! echo "${plan_output}" | grep -q -e 'Plan:' -e 'No changes.'; then
+            echo "::error::Terraform plan failed with an error."
             exit 1
-          fi            
-          echo "exitcode=$PLAN_EXIT_CODE" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Capture plan text
-        if: ${{ steps.plan.outputs.exitcode == '2' }}
+        if: steps.plan.outputs.drift_detected == 'true'
         id: show
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
@@ -77,7 +101,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Email drift alert
-        if: steps.plan.outputs.exitcode == '2'
+        if: steps.plan.outputs.drift_detected == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
@@ -91,7 +115,7 @@ jobs:
           body: ${{ steps.show.outputs.body }}
 
       - name: Upload plan artifact
-        if: steps.plan.outputs.exitcode == '2'
+        if: steps.plan.outputs.drift_detected == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
@@ -99,7 +123,7 @@ jobs:
 
   apply:
     needs: plan
-    if: needs.plan.outputs.exitcode == '2'
+    if: steps.plan.outputs.drift_detected == 'true'
     runs-on: ubuntu-latest
     env:
       TF_VAR_base_domain: ${{ secrets.BASE_DOMAIN }}
