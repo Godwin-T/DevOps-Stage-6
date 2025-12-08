@@ -35,8 +35,7 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.14.1
-
+          terraform_version: 1.7.5
       - name: Terraform fmt
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform fmt -check
