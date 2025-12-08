@@ -66,15 +66,15 @@ jobs:
       #     fi            
       #     echo "exitcode=$PLAN_EXIT_CODE" >> "$GITHUB_OUTPUT"
       - name: Terraform Plan
-        continue-on-error: true
+        # continue-on-error: true
         id: plan
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
+          echo Starting Terraform ......................
           plan_output=$(terraform plan -no-color -out=tfplan 2>&1)
           echo "${plan_output}"
           
           echo "drift_detected=false" >> $GITHUB_OUTPUT
-          
           echo "plan_text<<EOF" >> $GITHUB_OUTPUT
           echo "${plan_output}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
