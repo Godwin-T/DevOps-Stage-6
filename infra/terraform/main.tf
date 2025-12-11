@@ -142,6 +142,7 @@ resource "null_resource" "ansible_deploy" {
       ANSIBLE_HOST_KEY_CHECKING = "False"
     }
     command = <<EOT
+sleep 30
 ansible-playbook \
   -i ../ansible/inventory/hosts.ini \
   ../ansible/site.yml \
