@@ -142,7 +142,6 @@ jobs:
       - name: Approval checkpoint
         run: echo "Approved, proceeding with apply"
 
-  # Apply only runs once the approval gate above succeeds.
   apply:
     needs: [plan, approval]
     if: needs.plan.outputs.drift_detected == 'true'
