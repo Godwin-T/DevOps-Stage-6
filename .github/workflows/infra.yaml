@@ -132,8 +132,26 @@ jobs:
           name: tfplan
           path: ${{ env.TF_WORKING_DIR }}/tfplan
 
-  apply:
+  approval:
     needs: plan
+    if: needs.plan.outputs.drift_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Await manual approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: ${{ vars.TERRAFORM_APPROVERS }}
+          minimum-approvals: 1
+          timeout: 1440
+          issue-title: "Terraform apply approval required"
+          issue-body: |
+            A Terraform plan detected drift in ${{ github.repository }}.
+            Review the plan artifact attached to this workflow run and approve to continue.
+
+  # Apply only runs once the approval gate above succeeds.
+  apply:
+    needs: [plan, approval]
     if: needs.plan.outputs.drift_detected == 'true'
     runs-on: ubuntu-latest
     env:
